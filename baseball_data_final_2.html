@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+  <style>
+
+    h2{
+      text-align: center;
+      font-size: 30px;
+      top: 70px;
+    }
+
+    div.handedness_buttons {
+        position: fixed;
+        top: 100px;
+        left: 70px;
+      }
+
+    div.handedness_buttons div {
+        background-color: rgb(251, 201, 127);
+        padding: 3px;
+        margin: 7px;
+      }
+
+    p {
+      text-align: left;
+      color: grey;
+      font-family: arial;
+      font-size : 17px;
+      top: 50px;
+      left:100px;
+
+    ｝
+  </style>
+    <script type="text/javascript">
+      function draw(data) {
+                    
+      /*
+        D3.js setup code
+      */
+          "use strict";
+         
+          
+          var margin = 75,
+              width = 1700 - margin,
+              height = 800 - margin;
+
+          d3.select('body')
+            .append('h2')
+            .text('棒球手的全垒得分差异')
+            .append('p')
+            .text('选择棒球手的用手习惯');
+
+
+          function key_func(d) {
+                return d['key'];
+            }          
+//添加svg
+          var svg = d3.select("body")
+            .append("svg")
+            .attr("width", width + margin)
+            .attr("height", height + margin)
+            .append('g')
+            .attr('class','chart');       
+      
+//设置x,y,z
+          var myChart = new dimple.chart(svg, data);
+          var x = myChart.addCategoryAxis("x", "height");
+          var y = myChart.addCategoryAxis("y", "weight");
+          var z = myChart.addMeasureAxis("z", "HR");
+//使用气泡图
+          y.title = "weight(pound)"
+          x.title = "height(inch)"
+          var myAxis = myChart.addMeasureAxis("y", "weight");
+          myAxis.ticks = 10
+          myChart.addSeries(["name","handedness"], dimple.plot.bubble);
+          myChart.addLegend(700,10,510,20, "right");
+          myChart.draw(500);
+
+
+          function update(handedness){
+              svg.selectAll('*').remove();
+              var filtered = data.filter(function(d){
+                  if (handedness === "All") {return 1;}
+                  else {
+                    return d['handedness'] === handedness;
+                  }
+              });
+    
+              var circles = svg.selectAll('circle')
+                               .data(filtered);
+              
+    
+              //circles.exit().remove();
+    
+              //circles.enter()
+                     //.append("circle")
+    
+              var myChart = new dimple.chart(svg,filtered);
+              var x = myChart.addCategoryAxis("x", "height");
+              var y = myChart.addCategoryAxis("y", "weight");
+              var z = myChart.addMeasureAxis("z", "HR");
+
+              y.title = "weight(pound)"
+              x.title = "height(inch)"
+              myChart.addMeasureAxis("y", "weight");
+              myChart.addSeries(["name","handedness"], dimple.plot.bubble);
+              myChart.addLegend(700,10,510,20, "right");
+              return myChart.draw(500);
+          };
+  
+          var hand = ["L","R","B","All"]
+          var buttons = d3.select("body")
+                  .append("div")
+                  .attr("class","handedness_buttons")
+                  .selectAll("div")
+                  .data(hand)
+                  .enter()
+                  .append("div")
+                  .text(function(d){
+              return d;
+          });
+          buttons.on("click", function(d) {
+                    d3.select(".handedness_buttons")
+                      .selectAll("div")
+                      .style("color", "black")
+                      .style("background", "rgb(251, 201, 127)");
+
+                    d3.select(this)
+                      .style("background", "lightBlue")
+                      .style("color", "white");
+                    update(d);
+                
+          });
+
+      /*
+        Dimple.js Chart construction code
+      */
+
+
+        };
+      </script>
+  </head>
+<body>
+  <script type="text/javascript">
+  /*
+    Use D3 (not dimple.js) to load the TSV file
+    and pass the contents of it to the draw function
+    */
+  d3.csv("baseball_data.csv",draw);
+  </script>
+</body>
+</html>
+
